@@ -10,7 +10,8 @@ public class Student {
 	private String uniClass;
 	private LocalDate dob;
 	private String sex;
-	private String courseYear;
+	private int courseYear;
+	private int courseDuration;
 	private String pob;
 	private String department;
 	private String faculty;
@@ -22,14 +23,32 @@ public class Student {
 		
 	}
 
-	public Student(String id, String name, String uniClass, LocalDate dob, String sex, String courseYear, String pob,
-			String department, String faculty, String major, String counselor) {
+	public Student(String id, String name, String uniClass, String sex, int courseYear,
+			int courseDuration, String pob, String department, String faculty, String major, String counselor) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.uniClass = uniClass;
+		this.sex = sex;
+		this.courseYear = courseYear;
+		this.courseDuration = courseDuration;
+		this.pob = pob;
+		this.department = department;
+		this.faculty = faculty;
+		this.major = major;
+		this.counselor = counselor;
+	}
+	
+	public Student(String id, String name, String uniClass, LocalDate dob, String sex, int courseYear,
+			int courseDuration, String pob, String department, String faculty, String major, String counselor) {
+		super();
 		this.id = id;
 		this.name = name;
 		this.uniClass = uniClass;
 		this.dob = dob;
 		this.sex = sex;
 		this.courseYear = courseYear;
+		this.courseDuration = courseDuration;
 		this.pob = pob;
 		this.department = department;
 		this.faculty = faculty;
@@ -37,14 +56,17 @@ public class Student {
 		this.counselor = counselor;
 	}
 
-	public Student(String id, String name, String uniClass, LocalDate dob, String sex, String courseYear, String pob,
-			String department, String faculty, String major, String counselor, List<Course> courses) {
+	public Student(String id, String name, String uniClass, LocalDate dob, String sex, int courseYear,
+			int courseDuration, String pob, String department, String faculty, String major, String counselor,
+			List<Course> courses) {
+		super();
 		this.id = id;
 		this.name = name;
 		this.uniClass = uniClass;
 		this.dob = dob;
 		this.sex = sex;
 		this.courseYear = courseYear;
+		this.courseDuration = courseDuration;
 		this.pob = pob;
 		this.department = department;
 		this.faculty = faculty;
@@ -93,12 +115,20 @@ public class Student {
 		this.sex = sex;
 	}
 
-	public String getCourseYear() {
+	public int getCourseYear() {
 		return courseYear;
 	}
 
-	public void setCourseYear(String courseYear) {
+	public void setCourseYear(int courseYear) {
 		this.courseYear = courseYear;
+	}
+
+	public int getCourseDuration() {
+		return courseDuration;
+	}
+
+	public void setCourseDuration(int courseDuration) {
+		this.courseDuration = courseDuration;
 	}
 
 	public String getPob() {
@@ -152,8 +182,8 @@ public class Student {
 	@Override
 	public String toString() {
 		return "Student [id=" + id + ", name=" + name + ", uniClass=" + uniClass + ", dob=" + dob + ", sex=" + sex
-				+ ", courseYear=" + courseYear + ", pob=" + pob + ", department=" + department + ", faculty=" + faculty
-				+ ", major=" + major + ", counselor=" + counselor + "]";
+				+ ", courseYear=" + courseYear + ", courseDuration=" + courseDuration + ", pob=" + pob + ", department="
+				+ department + ", faculty=" + faculty + ", major=" + major + ", counselor=" + counselor + "]";
 	}
-	
+
 }

@@ -17,6 +17,7 @@ import javax.swing.border.LineBorder;
 
 import gui.panel.GPAPanel;
 import gui.panel.ProgressPanel;
+import gui.panel.RankingPanel;
 import tool.Design;
 
 import java.awt.event.MouseAdapter;
@@ -129,12 +130,14 @@ public class UserFrame extends JFrame implements MouseListener {
         rankingPanel.setLayout(null);
         rankingPanel.setBackground(new Color(45, 118, 232));
         rankingPanel.setBounds(0, 190, 180, 40);
+        rankingPanel.addMouseListener(this);
         leftPanel.add(rankingPanel);
         
         lbRanking = new JLabel("Xếp hạng");
         lbRanking.setHorizontalAlignment(SwingConstants.CENTER);
         lbRanking.setForeground(Color.WHITE);
         lbRanking.setBounds(0, 0, 180, 40);
+        lbRanking.addMouseListener(this);
         rankingPanel.add(lbRanking);
 
         insideCenter = new GPAPanel();
@@ -156,9 +159,10 @@ public class UserFrame extends JFrame implements MouseListener {
             centerPanel.add(insideCenter, BorderLayout.CENTER);
             centerPanel.repaint();
             centerPanel.revalidate();
-        } else if (e.getSource() == gpaPanel || e.getSource() == lbGPA) {
+        }
+        else if (e.getSource() == rankingPanel || e.getSource() == lbRanking) {
             centerPanel.removeAll();
-            insideCenter = new GPAPanel();
+            insideCenter = new RankingPanel();
             centerPanel.add(insideCenter, BorderLayout.CENTER);
             centerPanel.repaint();
             centerPanel.revalidate();
@@ -177,6 +181,7 @@ public class UserFrame extends JFrame implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+    	
     }
 
     @Override
