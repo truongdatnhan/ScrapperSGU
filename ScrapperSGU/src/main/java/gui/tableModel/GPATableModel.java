@@ -2,6 +2,7 @@ package gui.tableModel;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.table.DefaultTableModel;
@@ -9,14 +10,14 @@ import model.Course;
 
 public class GPATableModel extends DefaultTableModel {
 
-    public ArrayList<Course> courses;
+    public List<Course> courses;
     private static String[] colName = {"STT","Mã môn","Tên môn", "Điểm hệ 10", "Điểm hệ 4̉"};
 
     public GPATableModel() {
         super(colName, 0);
     }
 
-    public void setData(ArrayList<Course> list) {
+    public void setData(List<Course> list) {
         this.courses = list;
     }
 

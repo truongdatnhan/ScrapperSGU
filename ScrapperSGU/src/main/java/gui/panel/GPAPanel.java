@@ -18,6 +18,8 @@ import javax.swing.SwingConstants;
 import com.toedter.calendar.JDateChooser;
 import gui.table.GPATable;
 import model.Course;
+import model.Student;
+
 import java.util.ArrayList;
 
 public class GPAPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
@@ -37,12 +39,9 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 	private JTextField txCourseYear;
 	private JTextField txCounselor;
 
-	public GPAPanel() {
+	public GPAPanel(Student student) {
 		setBackground(Color.WHITE);
 		setLayout(null);
-
-		ArrayList<Course> cList = new ArrayList<>();
-		cList.add(new Course("123456", "LTM", 3, 10, 4));
 
 		JLabel lbStudentID = new JLabel("Mã sinh viên :");
 		lbStudentID.setBounds(50, 30, 120, 25);
@@ -162,11 +161,6 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 		btnIn.addActionListener(this);
 		add(btnIn);
 
-		table = new GPATable();
-		table.setData(cList);
-		table.setBounds(5, 295, 1080, 370);
-		add(table);
-
 		JLabel lbCourseYear = new JLabel("Khoá học :");
 		lbCourseYear.setBounds(50, 185, 120, 25);
 		add(lbCourseYear);
@@ -186,24 +180,21 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 		txCounselor.setColumns(10);
 		txCounselor.setBounds(746, 185, 284, 25);
 		add(txCounselor);
-		table.loadData();
+		
+		//ArrayList<Course> cList = new ArrayList<>();
+		//cList.add(new Course("123456", "LTM", 3, 10, 4));
+		
+		table = new GPATable();
+		//table.setData(cList);
+		table.setBounds(5, 295, 1080, 320);
+		add(table);
+		//table.loadData();
 
-		/*
-		 * table.getTable().addMouseListener(new MouseAdapter() {
-		 * 
-		 * @Override public void mouseClicked(MouseEvent e) { int i =
-		 * table.table.getSelectedRow(); if (i >= 0) { btnThem.setEnabled(false);
-		 * txManv.setEditable(false); nhanvienDTO nv = new nhanvienDTO(); nv =
-		 * table.getModel().getNV(i); txManv.setText(nv.getManv());
-		 * txHo.setText(nv.getHo()); txTen.setText(nv.getTen()); try { Date ngaysinh =
-		 * new SimpleDateFormat("yyyy-MM-dd").parse(nv.getNgaysinh());
-		 * dateChooser.setDate(ngaysinh); } catch (ParseException e1) {
-		 * System.out.println(e1); } if ("Nam".equals(nv.getGioitinh())) {
-		 * rbNam.setSelected(true); } else if ("Nữ".equals(nv.getGioitinh())) {
-		 * rbNu.setSelected(true); } txDiachi.setText(nv.getDiachi());
-		 * txEmail.setText(nv.getEmail()); txSDT.setText(nv.getSdt());
-		 * txLuong.setText(nv.getLuong()); } } });
-		 */
+		if(student != null) {
+			table.setData(student.getCourses());
+			table.loadData();
+		}
+		
 	}
 
 	@Override

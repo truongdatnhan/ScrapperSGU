@@ -2,30 +2,33 @@ package model;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 public class Student {
-
+	private String stt;
 	private String id;
 	private String name;
 	private String uniClass;
 	private LocalDate dob;
 	private String sex;
 	private int courseYear;
-	private int courseDuration;
+	private String courseDuration;
 	private String pob;
 	private String department;
 	private String faculty;
 	private String major;
 	private String counselor;
+	private int currentCredit;
 	private List<Course> courses;
+	private List<Course> remainCourses;
+	private Map<String,List<Float>> markMap;
 	
 	public Student() {
 		
 	}
 
 	public Student(String id, String name, String uniClass, String sex, int courseYear,
-			int courseDuration, String pob, String department, String faculty, String major, String counselor) {
-		super();
+			String courseDuration, String pob, String department, String faculty, String major, String counselor) {
 		this.id = id;
 		this.name = name;
 		this.uniClass = uniClass;
@@ -40,8 +43,7 @@ public class Student {
 	}
 	
 	public Student(String id, String name, String uniClass, LocalDate dob, String sex, int courseYear,
-			int courseDuration, String pob, String department, String faculty, String major, String counselor) {
-		super();
+			String courseDuration, String pob, String department, String faculty, String major, String counselor) {
 		this.id = id;
 		this.name = name;
 		this.uniClass = uniClass;
@@ -57,8 +59,8 @@ public class Student {
 	}
 
 	public Student(String id, String name, String uniClass, LocalDate dob, String sex, int courseYear,
-			int courseDuration, String pob, String department, String faculty, String major, String counselor,
-			List<Course> courses) {
+			String courseDuration, String pob, String department, String faculty, String major, String counselor,
+			List<Course> courses, Map<String,List<Float>> markMap) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -73,6 +75,7 @@ public class Student {
 		this.major = major;
 		this.counselor = counselor;
 		this.courses = courses;
+		this.markMap = markMap;
 	}
 
 	public String getId() {
@@ -123,11 +126,11 @@ public class Student {
 		this.courseYear = courseYear;
 	}
 
-	public int getCourseDuration() {
+	public String getCourseDuration() {
 		return courseDuration;
 	}
 
-	public void setCourseDuration(int courseDuration) {
+	public void setCourseDuration(String courseDuration) {
 		this.courseDuration = courseDuration;
 	}
 
@@ -177,6 +180,38 @@ public class Student {
 
 	public void setCourses(List<Course> courses) {
 		this.courses = courses;
+	}
+
+	public Map<String, List<Float>> getMarkMap() {
+		return markMap;
+	}
+
+	public void setMarkMap(Map<String, List<Float>> markMap) {
+		this.markMap = markMap;
+	}
+
+	public List<Course> getRemainCourses() {
+		return remainCourses;
+	}
+
+	public void setRemainCourses(List<Course> remainCourses) {
+		this.remainCourses = remainCourses;
+	}
+
+	public int getCurrentCredit() {
+		return currentCredit;
+	}
+
+	public void setCurrentCredit(int currentCredit) {
+		this.currentCredit = currentCredit;
+	}
+
+	public String getStt() {
+		return stt;
+	}
+
+	public void setStt(String stt) {
+		this.stt = stt;
 	}
 
 	@Override

@@ -15,27 +15,35 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import model.Student;
+
 public class ProgressPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
 
 	public JTabbedPane tabbedPane;
 	public JLabel lbProgerss;
 	public ProgressGraphTab tab1;
 	public ProgressRemainTab tab2;
-	public ProgressPanel() {
+	public ProgressPanel(Student student) {
 		setBackground(Color.WHITE);
 		setLayout(new BorderLayout());
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tab1 = new ProgressGraphTab();
+		tab1 = new ProgressGraphTab(student);
 		tabbedPane.addTab("Biểu đồ", null, tab1, null);
-		tab2 = new ProgressRemainTab();
+		tab2 = new ProgressRemainTab(student);
 		tabbedPane.addTab("Các môn học còn lại", null, tab2, null);
 		add(tabbedPane,BorderLayout.CENTER);
 		
 		
 		//lbProgerss = new JLabel("Bạn đã hoàn thành 75% học phần");
-		lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Bạn đã hoàn thành 75% học phần"+"</span></html>");
-		add(lbProgerss,BorderLayout.PAGE_END);
+		if(student != null) {
+			lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Bạn đã hoàn thành "+ student.getMarkMap().values() +"% học phần"+"</span></html>");
+			add(lbProgerss,BorderLayout.PAGE_END);
+		} else {
+			lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Hãy tìm mã số sinh viên để biết kết quả"+"</span></html>");
+			add(lbProgerss,BorderLayout.PAGE_END);
+		}
+		
 	}
 
 	@Override

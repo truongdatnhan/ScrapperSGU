@@ -2,6 +2,8 @@ package gui.table;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
+import java.util.List;
+
 import gui.tableModel.ProgressTableModel;
 import model.Course;
 
@@ -28,7 +30,7 @@ public class ProgressTable extends JPanel {
 		add(new JScrollPane(table), BorderLayout.CENTER);
 	}
 
-	public void setData(ArrayList<Course> list) {
+	public void setData(List<Course> list) {
 		model.setData(list);
 	}
 

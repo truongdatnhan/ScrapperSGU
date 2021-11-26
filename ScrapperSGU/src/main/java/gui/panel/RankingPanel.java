@@ -37,7 +37,7 @@ public class RankingPanel extends JPanel implements ActionListener, KeyListener,
 		setBackground(Color.WHITE);
 		setLayout(new MigLayout("","[grow,push,fill]", "[][grow]"));
 		ArrayList<Student> sList = new ArrayList<>();
-		sList.add(new Student("123","THehehe","DCT1123","Male",2018,4,"NT","CNTT","CNTT","CNTT","KS RT"));
+		//sList.add(new Student("123","THehehe","DCT1123","Male",2018,4,"NT","CNTT","CNTT","CNTT","KS RT"));
 		
 		lbDepartment = new JLabel("Khoa: ");
 		lbDepartment.setHorizontalAlignment(JLabel.CENTER);

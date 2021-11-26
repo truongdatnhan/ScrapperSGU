@@ -7,17 +7,27 @@ public class Course {
 	private int courseCredit;
 	private float gradeBase10;
 	private int gradeBase4;
+	private boolean isPass;
+	
 	
 	public Course() {
 		
 	}
 
-	public Course(String courseID, String courseName, int courseCredit, float gradeBase10, int gradeBase4) {
+	public Course(String courseID, String courseName, int courseCredit) {
+		super();
+		this.courseID = courseID;
+		this.courseName = courseName;
+		this.courseCredit = courseCredit;
+	}
+
+	public Course(String courseID, String courseName, int courseCredit, float gradeBase10, int gradeBase4,boolean isPass) {
 		this.courseID = courseID;
 		this.courseName = courseName;
 		this.courseCredit = courseCredit;
 		this.gradeBase10 = gradeBase10;
 		this.gradeBase4 = gradeBase4;
+		this.isPass = isPass;
 	}
 
 	public String getCourseID() {
@@ -60,10 +70,18 @@ public class Course {
 		this.gradeBase4 = gradeBase4;
 	}
 
+	public boolean isPass() {
+		return isPass;
+	}
+
+	public void setPass(boolean isPass) {
+		this.isPass = isPass;
+	}
+
 	@Override
 	public String toString() {
 		return "Course [courseID=" + courseID + ", courseName=" + courseName + ", courseCredit=" + courseCredit
-				+ ", gradeBase10=" + gradeBase10 + ", gradeBase4=" + gradeBase4 + "]";
+				+ ", gradeBase10=" + gradeBase10 + ", gradeBase4=" + gradeBase4 + ", isPass=" + isPass + "]";
 	}
-	
+
 }
