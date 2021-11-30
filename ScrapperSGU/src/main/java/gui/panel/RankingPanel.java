@@ -24,6 +24,7 @@ import gui.table.RankingTable;
 import model.Course;
 import model.Student;
 import net.miginfocom.swing.MigLayout;
+import tool.TraCuuListener;
 
 import java.util.ArrayList;
 import javax.swing.JToggleButton;
@@ -36,8 +37,7 @@ public class RankingPanel extends JPanel implements ActionListener, KeyListener,
 	public RankingPanel() {
 		setBackground(Color.WHITE);
 		setLayout(new MigLayout("","[grow,push,fill]", "[][grow]"));
-		ArrayList<Student> sList = new ArrayList<>();
-		//sList.add(new Student("123","THehehe","DCT1123","Male",2018,4,"NT","CNTT","CNTT","CNTT","KS RT"));
+		
 		
 		lbDepartment = new JLabel("Khoa: ");
 		lbDepartment.setHorizontalAlignment(JLabel.CENTER);
@@ -58,9 +58,26 @@ public class RankingPanel extends JPanel implements ActionListener, KeyListener,
 		add(facultyCheck,"wrap");
 		
 		table = new RankingTable();
+		ArrayList<Student> sList = new ArrayList<>();
+		Student student = new Student();
+		student.setId("123");
+		student.setName("CC");
+		student.setDepartment("CC");
+		student.setCourseYear(2018);
+		student.setFaculty("CC");
+		
+		sList.add(student);
 		table.setData(sList);
 		add(table,"span,grow");
 		table.loadData();
+	}
+
+	public RankingTable getTable() {
+		return table;
+	}
+
+	public void setTable(RankingTable table) {
+		this.table = table;
 	}
 
 	@Override

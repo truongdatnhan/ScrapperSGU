@@ -33,6 +33,7 @@ import model.Course;
 import model.ListMonHoc;
 import model.Student;
 import tool.Design;
+import tool.TraCuuListener;
 
 import java.awt.event.MouseAdapter;
 import java.util.ArrayList;
@@ -59,6 +60,7 @@ public class UserFrame extends JFrame implements MouseListener {
 	public JTextField mssvField;
 	public JPanel insideCenter;
 	public String ipAddress;
+	public TraCuuListener traCuuListener;
 	public int port;
 	public Student student = null;
 
@@ -139,61 +141,7 @@ public class UserFrame extends JFrame implements MouseListener {
 		btnSearch = new JButton("Tìm");
 		btnSearch.setBounds(480, 9, 85, 21);
 		btnSearch.addMouseListener(this);
-		header.add(btnSearch);
-
-		centerPanel = new JPanel();
-		centerPanel.setLayout(new BorderLayout());
-		mainPanel.add(centerPanel, BorderLayout.CENTER);
-		ImageIcon iconPN = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
-		ImageIcon iconPM = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
-		ImageIcon iconPP = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
-
-		rankingPanel = new JPanel();
-		rankingPanel.setLayout(null);
-		rankingPanel.setBackground(new Color(45, 118, 232));
-		rankingPanel.setBounds(0, 190, 180, 40);
-		rankingPanel.addMouseListener(this);
-		leftPanel.add(rankingPanel);
-
-		lbRanking = new JLabel("Xếp hạng");
-		lbRanking.setHorizontalAlignment(SwingConstants.CENTER);
-		lbRanking.setForeground(Color.WHITE);
-		lbRanking.setBounds(0, 0, 180, 40);
-		lbRanking.addMouseListener(this);
-		rankingPanel.add(lbRanking);
-
-		insideCenter = new GPAPanel(student);
-		centerPanel.add(insideCenter, BorderLayout.CENTER);
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		if (e.getSource() == gpaPanel || e.getSource() == lbGPA) {
-			centerPanel.removeAll();
-			insideCenter = new GPAPanel(student);
-			centerPanel.add(insideCenter, BorderLayout.CENTER);
-			centerPanel.repaint();
-			centerPanel.revalidate();
-		}
-		if (e.getSource() == progressPanel || e.getSource() == lbProgress) {
-			centerPanel.removeAll();
-			insideCenter = new ProgressPanel(student);
-			centerPanel.add(insideCenter, BorderLayout.CENTER);
-			centerPanel.repaint();
-			centerPanel.revalidate();
-		}
-		if (e.getSource() == rankingPanel || e.getSource() == lbRanking) {
-			centerPanel.removeAll();
-			insideCenter = new RankingPanel();
-			centerPanel.add(insideCenter, BorderLayout.CENTER);
-			centerPanel.repaint();
-			centerPanel.revalidate();
-		}
-		if (e.getSource() == btnSearch) {
-
+		btnSearch.addActionListener((e) -> {
 			try (Socket socket = new Socket(ipAddress, port);
 					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 					ObjectInputStream mapInputStream = new ObjectInputStream(socket.getInputStream());) {
@@ -294,76 +242,6 @@ public class UserFrame extends JFrame implements MouseListener {
 					
 				}
 				
-				/*for (var entry : map.entrySet()) {
-					System.out.println(entry.getKey());
-
-					if (entry.getKey().equals("Error")) {
-						student = null;
-						break;
-					}
-					if (entry.getKey().equals("Thông tin sinh viên")) {
-						student = new Student();
-						student.setId(entry.getValue().get(0));
-						student.setName(entry.getValue().get(1));
-						student.setSex(entry.getValue().get(2));
-						student.setPob(entry.getValue().get(3));
-						student.setUniClass(StringUtils.substringBefore(entry.getValue().get(4), "("));
-						student.setDepartment(entry.getValue().get(5));
-						student.setMajor(entry.getValue().get(6));
-						student.setFaculty(entry.getValue().get(7));
-						student.setCourseYear(Integer.parseInt(entry.getValue().get(9).substring(0, 4)));
-						student.setCourseDuration(entry.getValue().get(9));
-						student.setCounselor(entry.getValue().get(10));
-						continue;
-					}
-
-					if (entry.getKey().startsWith("Điểm")) {
-						if(entry.getValue() == null)
-							continue;
-						List<Float> diem = new ArrayList<Float>();
-						entry.getValue().forEach(x -> diem.add(Float.parseFloat(x)));
-						markMap.put(StringUtils.substringAfter(entry.getKey(), " "), diem);
-						continue;
-					}
-
-					for (var course : entry.getValue()) {
-						String[] splits = course.split("\\|");
-						Course c = new Course();
-						
-						if(splits[0].equals("KSTA60")) {
-							continue;
-						}
-							
-						if (Arrays.stream(array_TheChat).anyMatch(x -> splits[0].startsWith(x))) {
-							if (!courses.stream().anyMatch(x -> x.getCourseID().equals("862102"))) {
-								c.setCourseID("862102");
-								c.setCourseName("Giáo dục thểchất (II)");
-								c.setCourseCredit(Integer.parseInt(splits[2]));
-								c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-								c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
-								c.setPass(splits[5].equals("Đạt") ? true : false);
-								courses.add(c);
-								continue;
-							}
-							c.setCourseID("862103");
-							c.setCourseName("Giáo dục thểchất (III)");
-							c.setCourseCredit(Integer.parseInt(splits[2]));
-							c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-							c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
-							c.setPass(splits[5].equals("Đạt") ? true : false);
-							courses.add(c);
-							continue;
-						}
-						c.setCourseID(splits[0]);
-						c.setCourseName(splits[1]);
-						c.setCourseCredit(Integer.parseInt(splits[2]));
-						c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-						c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
-						c.setPass(splits[5].equals("Đạt") ? true : false);
-						courses.add(c);
-					}
-
-				}*/
 				student.setCourses(courses);
 				student.setMarkMap(markMap);
 				student.setRemainCourses(remain);
@@ -373,7 +251,6 @@ public class UserFrame extends JFrame implements MouseListener {
 				centerPanel.add(insideCenter, BorderLayout.CENTER);
 				centerPanel.repaint();
 				centerPanel.revalidate();
-				
 			} catch (UnknownHostException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
@@ -384,6 +261,63 @@ public class UserFrame extends JFrame implements MouseListener {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
+		});
+		header.add(btnSearch);
+
+		centerPanel = new JPanel();
+		centerPanel.setLayout(new BorderLayout());
+		mainPanel.add(centerPanel, BorderLayout.CENTER);
+		ImageIcon iconPN = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
+				(int) (progressPanel.getHeight() * 1.5));
+		ImageIcon iconPM = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
+				(int) (progressPanel.getHeight() * 1.5));
+		ImageIcon iconPP = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
+				(int) (progressPanel.getHeight() * 1.5));
+
+		rankingPanel = new JPanel();
+		rankingPanel.setLayout(null);
+		rankingPanel.setBackground(new Color(45, 118, 232));
+		rankingPanel.setBounds(0, 190, 180, 40);
+		rankingPanel.addMouseListener(this);
+		leftPanel.add(rankingPanel);
+
+		lbRanking = new JLabel("Xếp hạng");
+		lbRanking.setHorizontalAlignment(SwingConstants.CENTER);
+		lbRanking.setForeground(Color.WHITE);
+		lbRanking.setBounds(0, 0, 180, 40);
+		lbRanking.addMouseListener(this);
+		rankingPanel.add(lbRanking);
+
+		insideCenter = new GPAPanel(student);
+		centerPanel.add(insideCenter, BorderLayout.CENTER);
+	}
+	
+	@Override
+	public void mousePressed(MouseEvent e) {
+		if (e.getSource() == gpaPanel || e.getSource() == lbGPA) {
+			centerPanel.removeAll();
+			insideCenter = new GPAPanel(student);
+			centerPanel.add(insideCenter, BorderLayout.CENTER);
+			centerPanel.repaint();
+			centerPanel.revalidate();
+		}
+		if (e.getSource() == progressPanel || e.getSource() == lbProgress) {
+			centerPanel.removeAll();
+			insideCenter = new ProgressPanel(student);
+			centerPanel.add(insideCenter, BorderLayout.CENTER);
+			centerPanel.repaint();
+			centerPanel.revalidate();
+		}
+		if (e.getSource() == rankingPanel || e.getSource() == lbRanking) {
+			centerPanel.removeAll();
+			RankingPanel center = new RankingPanel();
+			center.getTable().setTraCuuListener(mssv -> {
+				mssvField.setText(mssv);
+				btnSearch.doClick();
+			});
+			centerPanel.add(center, BorderLayout.CENTER);
+			centerPanel.repaint();
+			centerPanel.revalidate();
 		}
 	}
 

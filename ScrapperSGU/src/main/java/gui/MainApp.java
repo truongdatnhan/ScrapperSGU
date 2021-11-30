@@ -30,19 +30,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class MainApp extends JFrame {
-
-    private JPanel mainPanel;
-    private JTextField txUserName;
-    private JPasswordField tpPassword;
-    private JPanel pnLogin;
-    private JLabel lbLogin;
-    private JLabel lbUsername;
-    private JLabel lbPassword;
-    private JLabel lbTitle;
-    private JLabel lbClose;
-    private JPanel closePanel;
-    private JLabel lbForgetPass;
-
     /**
      * Launch the application.
      */
