@@ -82,38 +82,48 @@ public class ServerNew {
 				.buildSessionFactory();) {
 			Session session = factory.getCurrentSession();
 			session.beginTransaction();
+			
+			StringBuilder sb = new StringBuilder();
+			
+			
+			if(department != null) {
+				sb.append(" AND khoa = ")
+				.append("'")
+				.append(department)
+				.append("'");
+			}
+			
+			if(year != null) {
+				sb.append(" AND namhoc= ")
+				.append("'")
+				.append(year)
+				.append("'");
+			}
+			
+			if(faculty != null) {
+				sb.append(" AND nganh = ")
+				.append("'")
+				.append(faculty)
+				.append("'");
+			}
 			NativeQuery p = session.createNativeQuery("SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien ) AS svMark\r\n"
 					+ "WHERE id = :id\r\n"
 					+ "union all (\r\n"
 					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark\r\n"
-					+ "  where ranking <  (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id)  AND :nam IS NULL or namhoc = :nam AND :khoa IS NULL or khoa = :khoa AND :nganh IS NULL or nganh = :nganh\r\n"
+					+ "  where ranking <  (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id) \r\n"
+					+ sb.toString()
 					+ "  order by ranking desc limit 10\r\n"
 					+ ") \r\n"
 					+ "union all (\r\n"
 					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien ) AS svMark\r\n"
-					+ "  where ranking > (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id) AND :nam IS NULL or namhoc = :nam AND :khoa IS NULL or khoa = :khoa AND :nganh IS NULL or nganh = :nganh\r\n"
+					+ "  where ranking > (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id) \r\n"
+					+ sb.toString()
 					+ "  order by ranking asc limit 10\r\n"
 					+ ") order by ranking asc");
 			p.setParameter("id", id);
 			
 			
-			if(department != null) {
-				p.setParameter("khoa", department);
-			} else {
-				p.setParameter("khoa", null);
-			}
 			
-			if(year != null) {
-				p.setParameter("nam", year);
-			} else {
-				p.setParameter("nam", null);
-			}
-			
-			if(faculty != null) {
-				p.setParameter("nganh", faculty);
-			} else {
-				p.setParameter("nganh", null);
-			}
 			rank = p.addEntity(Ranking.class).getResultList();
 			session.getTransaction().commit();
 		}
