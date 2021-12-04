@@ -2,22 +2,24 @@ package gui.tableModel;
 
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
 import javax.swing.table.DefaultTableModel;
-import model.Student;
+
+import model.Ranking;
 
 public class RankingTableModel extends DefaultTableModel {
 
-    public ArrayList<Student> students;
+    public List<Ranking> students;
     private static String[] colName = {"STT","Mã sinh viên","Tên sinh viên","Khoa","Khoá","Ngành","Tra Cứu"};
 
     public RankingTableModel() {
         super(colName, 0);
     }
 
-    public void setData(ArrayList<Student> list) {
-        this.students = list;
+    public void setData(List<Ranking> rank) {
+        this.students = rank;
     }
 
     @Override
@@ -28,9 +30,9 @@ public class RankingTableModel extends DefaultTableModel {
     public void loadData() {
         deleteAll();
         int i=1;
-        for (Student s : students) {
+        for (Ranking s : students) {
             Vector<String> row = new Vector<String>();
-            row.add(Integer.toString(i++));
+            row.add(Integer.toString(s.getStt()));
             row.add(s.getId());
             row.add(s.getName());
             row.add(s.getDepartment());
@@ -39,22 +41,6 @@ public class RankingTableModel extends DefaultTableModel {
             row.add("Tra cứu");
             super.addRow(row);
         }
-    }
-
-    public void addRow(Student s) {
-        if (s == null) {
-            throw new IllegalArgumentException("NULL");
-        }
-        students.add(s);
-        Vector<String> row = new Vector<String>();
-        row.add(Integer.toString(students.size()));
-        row.add(s.getId());
-        row.add(s.getName());
-        row.add(s.getDepartment());
-        row.add(Integer.toString(s.getCourseYear()));
-        row.add(s.getFaculty());
-        row.add("Tra cứu");
-        super.addRow(row);
     }
 
     public void deleteData(int i) {
@@ -77,7 +63,4 @@ public class RankingTableModel extends DefaultTableModel {
         }
     }
 
-    public Student getStudent(int index) {
-        return students.get(index);
-    }
 }

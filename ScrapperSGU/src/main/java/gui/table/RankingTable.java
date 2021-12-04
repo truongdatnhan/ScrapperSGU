@@ -3,9 +3,12 @@ package gui.table;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.List;
+
 import gui.tableModel.GPATableModel;
 import gui.tableModel.RankingTableModel;
 import model.Course;
+import model.Ranking;
 import model.Student;
 import tool.ButtonColumn;
 import tool.TraCuuListener;
@@ -49,8 +52,8 @@ public class RankingTable extends JPanel {
 		add(new JScrollPane(table), BorderLayout.CENTER);
 	}
 
-	public void setData(ArrayList<Student> list) {
-		model.setData(list);
+	public void setData(List<Ranking> rank) {
+		model.setData(rank);
 	}
 
 	public void refresh() {
@@ -59,10 +62,6 @@ public class RankingTable extends JPanel {
 
 	public void loadData() {
 		model.loadData();
-	}
-
-	public void addData(Student s) {
-		model.addRow(s);
 	}
 
 	public void deleteData(int i) {
@@ -89,9 +88,6 @@ public class RankingTable extends JPanel {
 		this.tr = tr;
 	}
 
-	public Student getStudent(int index) {
-		return model.getStudent(index);
-	}
 
 	public TraCuuListener getTraCuuListener() {
 		return traCuuListener;

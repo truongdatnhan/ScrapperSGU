@@ -4,17 +4,22 @@ import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+import org.hibernate.query.NativeQuery;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.Connection.Response;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+
+import model.Ranking;
 
 public class ServerNew {
 	public ServerNew(int port) {
@@ -44,13 +49,20 @@ public class ServerNew {
 				try (
 						// Socket socket = clientSocket;
 						clientSocket;
-						ObjectOutputStream mapOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
+						ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 						BufferedReader input = new BufferedReader(
 								new InputStreamReader(clientSocket.getInputStream()));) {
-
-					Map<String, List<String>>[] map = mapTTSV(input.readLine());
-					mapOutputStream.writeObject(map);
-					mapOutputStream.flush();
+					String[] receive = input.readLine().split("\\|");
+					Map<String, List<String>>[] map = mapTTSV(receive[0]);
+					String id = map[0].get("Thông tin sinh viên").get(0);
+					String department = Boolean.getBoolean(receive[1]) ? map[0].get("Thông tin sinh viên").get(5) : null;
+					String year = Boolean.getBoolean(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
+					String faculty = Boolean.getBoolean(receive[3]) ? map[0].get("Thông tin sinh viên").get(7) : null;
+					List<Ranking> studs = ranking(id,department,year,faculty);
+					objectOutputStream.writeObject(map);
+					objectOutputStream.flush();
+					objectOutputStream.writeObject(studs);
+					objectOutputStream.flush();
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -63,7 +75,51 @@ public class ServerNew {
 	public static void main(String[] args) {
 		ServerNew s = new ServerNew(5000);
 	}
-
+	
+	public static List<Ranking> ranking(String id,String department, String year, String faculty) {
+		List<Ranking> rank = null;
+		try (SessionFactory factory = new Configuration().configure().addAnnotatedClass(Ranking.class)
+				.buildSessionFactory();) {
+			Session session = factory.getCurrentSession();
+			session.beginTransaction();
+			NativeQuery p = session.createNativeQuery("SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien ) AS svMark\r\n"
+					+ "WHERE id = :id\r\n"
+					+ "union all (\r\n"
+					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark\r\n"
+					+ "  where ranking <  (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id)  AND :nam IS NULL or namhoc = :nam AND :khoa IS NULL or khoa = :khoa AND :nganh IS NULL or nganh = :nganh\r\n"
+					+ "  order by ranking desc limit 10\r\n"
+					+ ") \r\n"
+					+ "union all (\r\n"
+					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien ) AS svMark\r\n"
+					+ "  where ranking > (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id) AND :nam IS NULL or namhoc = :nam AND :khoa IS NULL or khoa = :khoa AND :nganh IS NULL or nganh = :nganh\r\n"
+					+ "  order by ranking asc limit 10\r\n"
+					+ ") order by ranking asc");
+			p.setParameter("id", id);
+			
+			
+			if(department != null) {
+				p.setParameter("khoa", department);
+			} else {
+				p.setParameter("khoa", null);
+			}
+			
+			if(year != null) {
+				p.setParameter("nam", year);
+			} else {
+				p.setParameter("nam", null);
+			}
+			
+			if(faculty != null) {
+				p.setParameter("nganh", faculty);
+			} else {
+				p.setParameter("nganh", null);
+			}
+			rank = p.addEntity(Ranking.class).getResultList();
+			session.getTransaction().commit();
+		}
+		return rank;
+	}
+	
 	public static LinkedHashMap<String, List<String>>[] mapTTSV(String ms) {
 		LinkedHashMap<String, List<String>> mapTT = new LinkedHashMap<>();
 		LinkedHashMap<String, List<String>> mapMon = new LinkedHashMap<>();

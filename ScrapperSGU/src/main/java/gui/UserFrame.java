@@ -31,6 +31,7 @@ import gui.panel.ProgressPanel;
 import gui.panel.RankingPanel;
 import model.Course;
 import model.ListMonHoc;
+import model.Ranking;
 import model.Student;
 import tool.Design;
 import tool.TraCuuListener;
@@ -63,6 +64,10 @@ public class UserFrame extends JFrame implements MouseListener {
 	public TraCuuListener traCuuListener;
 	public int port;
 	public Student student = null;
+	public boolean department = false;
+	public boolean year = false;
+	public boolean faculty = false;
+	public List<Ranking> rank = null;
 
 	public UserFrame() {
 		setBackground(Color.WHITE);
@@ -146,10 +151,16 @@ public class UserFrame extends JFrame implements MouseListener {
 					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 					ObjectInputStream mapInputStream = new ObjectInputStream(socket.getInputStream());) {
 				System.out.println("Connected");
-				out.write(mssvField.getText());
+				StringBuilder sb = new StringBuilder();
+				sb.append(mssvField.getText()).append("|")
+				.append(String.valueOf(department)).append("|")
+				.append(String.valueOf(year)).append("|")
+				.append(String.valueOf(faculty));
+				out.write(sb.toString());
 				out.newLine();
 				out.flush();
 				Map<String, List<String>>[] map = (LinkedHashMap<String, List<String>>[]) mapInputStream.readObject();
+				rank = (List<Ranking>) mapInputStream.readObject();
 				List<Course> courses = new ArrayList<>();
 				Map<String, List<Float>> markMap = new LinkedHashMap<>();
 				String[] array_TheChat = { "BODA", "BOBA", "BOCH", "CALO", "BORO" };
@@ -310,7 +321,21 @@ public class UserFrame extends JFrame implements MouseListener {
 		}
 		if (e.getSource() == rankingPanel || e.getSource() == lbRanking) {
 			centerPanel.removeAll();
-			RankingPanel center = new RankingPanel();
+			RankingPanel center = new RankingPanel(department,year,faculty,rank);
+			center.setCheckBoxListener((name,bool) -> {
+				switch(name) {
+				case "department":
+					department = bool;
+					break;
+				case "year":
+					year = bool;
+					break;
+				case "faculty":
+					faculty = bool;
+					break;
+				default:
+				}
+			});
 			center.getTable().setTraCuuListener(mssv -> {
 				mssvField.setText(mssv);
 				btnSearch.doClick();
