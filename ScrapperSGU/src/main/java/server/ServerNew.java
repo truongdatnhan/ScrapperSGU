@@ -55,9 +55,9 @@ public class ServerNew {
 					String[] receive = input.readLine().split("\\|");
 					Map<String, List<String>>[] map = mapTTSV(receive[0]);
 					String id = map[0].get("Thông tin sinh viên").get(0);
-					String department = Boolean.getBoolean(receive[1]) ? map[0].get("Thông tin sinh viên").get(5) : null;
-					String year = Boolean.getBoolean(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
-					String faculty = Boolean.getBoolean(receive[3]) ? map[0].get("Thông tin sinh viên").get(7) : null;
+					String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(5) : null;
+					String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
+					String faculty = Boolean.valueOf(receive[3]) ? map[0].get("Thông tin sinh viên").get(7) : null;
 					List<Ranking> studs = ranking(id,department,year,faculty);
 					objectOutputStream.writeObject(map);
 					objectOutputStream.flush();

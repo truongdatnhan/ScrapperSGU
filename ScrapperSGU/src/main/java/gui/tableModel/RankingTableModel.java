@@ -12,7 +12,7 @@ import model.Ranking;
 public class RankingTableModel extends DefaultTableModel {
 
     public List<Ranking> students;
-    private static String[] colName = {"STT","Mã sinh viên","Tên sinh viên","Khoa","Khoá","Ngành","Tra Cứu"};
+    private static String[] colName = {"STT","Mã sinh viên","Tên sinh viên","Khoa","Khoá","Ngành","Điểm","Tra Cứu"};
 
     public RankingTableModel() {
         super(colName, 0);
@@ -38,6 +38,7 @@ public class RankingTableModel extends DefaultTableModel {
             row.add(s.getDepartment());
             row.add(Integer.toString(s.getCourseYear()));
             row.add(s.getFaculty());
+            row.add(Float.toString(s.getDiem()));
             row.add("Tra cứu");
             super.addRow(row);
         }

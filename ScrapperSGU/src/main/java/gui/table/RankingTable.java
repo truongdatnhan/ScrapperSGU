@@ -46,7 +46,7 @@ public class RankingTable extends JPanel {
 		    }
 		};
 
-		buttonColumn = new ButtonColumn(table, traCuu, 6);
+		buttonColumn = new ButtonColumn(table, traCuu, 7);
 		table.setEnabled(true);
 		setLayout(new BorderLayout());
 		add(new JScrollPane(table), BorderLayout.CENTER);
