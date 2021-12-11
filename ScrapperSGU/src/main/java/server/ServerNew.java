@@ -27,6 +27,7 @@ public class ServerNew {
 			System.out.println("server started");
 			System.out.println("watting for a client...");
 			while (true) {
+				//Tạo 1 cái luồng mới
 				new ClientHandler(server.accept()).start();
 				System.out.println("Client accepted");
 			}
@@ -47,22 +48,38 @@ public class ServerNew {
 		public void run() {
 			try {
 				try (
-						// Socket socket = clientSocket;
+						
 						clientSocket;
+						//Phải dùng ObjectOutputStream mới gửi được map, object
+						//Cái kia chỉ gửi được String
 						ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
 						BufferedReader input = new BufferedReader(
 								new InputStreamReader(clientSocket.getInputStream()));) {
+					//Split cái chuỗi nhận vào theo ký tự |
 					String[] receive = input.readLine().split("\\|");
+					//Lấy thông tin sinh viên và điểm, nếu sinh viên không tồn tại = null
 					Map<String, List<String>>[] map = mapTTSV(receive[0]);
-					String id = map[0].get("Thông tin sinh viên").get(0);
-					String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(5) : null;
-					String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
-					String faculty = Boolean.valueOf(receive[3]) ? map[0].get("Thông tin sinh viên").get(7) : null;
-					List<Ranking> studs = ranking(id,department,year,faculty);
+					
+					//Trả về lần 1 là TTSV, Môn, Điểm
 					objectOutputStream.writeObject(map);
 					objectOutputStream.flush();
-					objectOutputStream.writeObject(studs);
-					objectOutputStream.flush();
+					//Phải có flush mới gửi tiếp dc
+					//Trả về lần 2
+					if(map != null) {
+						String id = map[0].get("Thông tin sinh viên").get(0);
+						//Kiểm tra các giá trị xếp hạng
+						//khoa
+						//Nếu không chọn => giá trị = false, sẽ = null 
+						//còn nếu chọn => giá trị = true, sẽ lấy trong map thông tin sinh viên và vị trí số 5
+						String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(5) : null;
+						//khoá
+						String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
+						//ngành
+						String faculty = Boolean.valueOf(receive[3]) ? map[0].get("Thông tin sinh viên").get(7) : null;
+						List<Ranking> studs = ranking(id,department,year,faculty);
+						objectOutputStream.writeObject(studs);
+						objectOutputStream.flush();
+					}
 				}
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -76,6 +93,7 @@ public class ServerNew {
 		ServerNew s = new ServerNew(5000);
 	}
 	
+	//Hàm lấy xếp hạng
 	public static List<Ranking> ranking(String id,String department, String year, String faculty) {
 		List<Ranking> rank = null;
 		try (SessionFactory factory = new Configuration().configure().addAnnotatedClass(Ranking.class)
@@ -85,7 +103,7 @@ public class ServerNew {
 			
 			StringBuilder sb = new StringBuilder();
 			
-			
+			//Khoa
 			if(department != null) {
 				sb.append(" AND khoa = ")
 				.append("'")
@@ -93,6 +111,7 @@ public class ServerNew {
 				.append("'");
 			}
 			
+			//Khoá
 			if(year != null) {
 				sb.append(" AND namhoc= ")
 				.append("'")
@@ -100,6 +119,7 @@ public class ServerNew {
 				.append("'");
 			}
 			
+			//Ngành
 			if(faculty != null) {
 				sb.append(" AND nganh = ")
 				.append("'")
@@ -130,6 +150,7 @@ public class ServerNew {
 		return rank;
 	}
 	
+	//Hàm lấy thông tin sinh viên
 	public static LinkedHashMap<String, List<String>>[] mapTTSV(String ms) {
 		LinkedHashMap<String, List<String>> mapTT = new LinkedHashMap<>();
 		LinkedHashMap<String, List<String>> mapMon = new LinkedHashMap<>();
@@ -151,27 +172,40 @@ public class ServerNew {
 			if (loginPage.getElementById("ctl00_ContentPlaceHolder1_ctl00_ucThongTinSV_lblMaSinhVien") == null) {
 				return null;
 			} else {
+				//Hàm lấy thông tin sinh viên
+				//Chọn cái bảng thông tin sinh viên
+				//Bảng div class là infor-member lấy tất cả các dòng tr
 				Elements info = loginPage.select("div.infor-member tr");
 				builder = new StringBuilder();
 				List<String> ttsv = new ArrayList<>();
+				//Vòng lặp để lấy thông tin sinh viên
 				for (var i : info) {
 					ttsv.add(i.select("td:nth-child(2) span").text());
 				}
+				//Thêm cái thông tinh sinh viên vào HashMap Thông tin
 				mapTT.put("Thông tin sinh viên", ttsv);
+				
+				//Bảng table có class là view-table chọn tất cả các dòng tr
 				Elements table = loginPage.select("table.view-table tr");
 				List<String> hk = null;
 				List<String> diem = null;
+				String tongTinChi = null;
 				for (Element e : table) {
-					if (e.className().equals("title-hk-diem")) {
+
+					builder = new StringBuilder();
+					switch (e.className()) {
+					case "title-hk-diem":
+						if(diem != null && !diem.isEmpty()) {
+							tongTinChi = diem.get(diem.size() -1);
+							System.out.println(tongTinChi);
+						}
 						hk = new ArrayList<>();
 						diem = new ArrayList<>();
 						mapMon.put(e.text(), hk);
 						mapDiem.put(e.text(), diem);
-					}
-
-					builder = new StringBuilder();
-					switch (e.className()) {
+						break;
 					case "row-diem":
+						//Nếu mà là row-diem nghĩa là môn học lấy các cột 2,3,4,10,13,14
 						builder.append(e.select("td:nth-child(2) span").text()).append("|")
 								.append(e.select("td:nth-child(3) span").text()).append("|")
 								.append(e.select("td:nth-child(4) span").text()).append("|")
@@ -181,14 +215,14 @@ public class ServerNew {
 						hk.add(builder.toString());
 						break;
 					case "row-diemTK":
+						//Nếu là row-diemTK tương ứng điểm tb lấy điểm
 							diem.add(e.select("td span:nth-child(2)").text());
 						break;
 					default:
 						break;
 					}
-
 				}
-
+				ttsv.add(tongTinChi);
 			}
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -7,6 +7,8 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.SimpleDateFormat;
+
 import javax.swing.ButtonGroup;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -15,12 +17,15 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.transaction.Transactional.TxType;
+
 import com.toedter.calendar.JDateChooser;
 import gui.table.GPATable;
 import model.Course;
 import model.Student;
 
 import java.util.ArrayList;
+import java.util.Date;
 
 public class GPAPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
 
@@ -31,9 +36,7 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 	private JTextField txDepartment;
 	private JTextField txFaculty;
 	private JTextField txMajor;
-	private JButton btnTailai, btnIn, btnExportExcel;
 	private JRadioButton rbNu, rbNam;
-	private JDateChooser dateChooser;
 	private ButtonGroup groupGioitinh;
 	public GPATable table;
 	private JTextField txCourseYear;
@@ -54,7 +57,7 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 		txStudentID.setColumns(10);
 
 		JLabel lbName = new JLabel("Họ và tên :");
-		lbName.setBounds(50, 70, 114, 25);
+		lbName.setBounds(50, 70, 120, 25);
 		add(lbName);
 
 		txName = new JTextField();
@@ -73,30 +76,20 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 		add(txClass);
 		txClass.setColumns(10);
 
-		JLabel lbDOB = new JLabel("Ngày sinh :");
-		lbDOB.setBounds(50, 110, 100, 25);
-		add(lbDOB);
-
-		dateChooser = new JDateChooser();
-		dateChooser.setDateFormatString("dd-MM-yyyy");
-		dateChooser.setBounds(175, 110, 372, 25);
-		dateChooser.setEnabled(false);
-		add(dateChooser);
-
 		JLabel lbGioitinh = new JLabel("Giới tính :");
-		lbGioitinh.setBounds(50, 150, 100, 25);
+		lbGioitinh.setBounds(50, 110, 120, 25);
 		add(lbGioitinh);
 
 		rbNam = new JRadioButton("Nam");
 		rbNam.setEnabled(false);
 		rbNam.setHorizontalAlignment(SwingConstants.CENTER);
-		rbNam.setBounds(197, 150, 92, 25);
+		rbNam.setBounds(197, 110, 92, 25);
 		add(rbNam);
 
 		rbNu = new JRadioButton("Nữ");
 		rbNu.setEnabled(false);
 		rbNu.setHorizontalAlignment(SwingConstants.CENTER);
-		rbNu.setBounds(356, 150, 114, 25);
+		rbNu.setBounds(356, 110, 114, 25);
 		add(rbNu);
 
 		groupGioitinh = new ButtonGroup();
@@ -143,32 +136,14 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 		add(txMajor);
 		txMajor.setColumns(10);
 
-		btnTailai = new JButton("Tải lại");
-		btnTailai.setIcon(new ImageIcon("./icon/icons8_synchronize_32.png"));
-		btnTailai.setBounds(197, 230, 145, 30);
-		btnTailai.addActionListener(this);
-		add(btnTailai);
-
-		btnExportExcel = new JButton("Export Excel");
-		btnExportExcel.setIcon(new ImageIcon("./icon/icons8_Microsoft_Excel_2019_32.png"));
-		btnExportExcel.setBounds(489, 230, 145, 30);
-		btnExportExcel.addActionListener(this);
-		add(btnExportExcel);
-
-		btnIn = new JButton("Export PDF");
-		btnIn.setIcon(new ImageIcon("./icon/icons8_print_32.png"));
-		btnIn.setBounds(746, 230, 145, 30);
-		btnIn.addActionListener(this);
-		add(btnIn);
-
 		JLabel lbCourseYear = new JLabel("Khoá học :");
-		lbCourseYear.setBounds(50, 185, 120, 25);
+		lbCourseYear.setBounds(50, 150, 120, 25);
 		add(lbCourseYear);
 
 		txCourseYear = new JTextField();
 		txCourseYear.setEditable(false);
 		txCourseYear.setColumns(10);
-		txCourseYear.setBounds(175, 185, 372, 25);
+		txCourseYear.setBounds(175, 150, 372, 25);
 		add(txCourseYear);
 
 		JLabel lbCounselor = new JLabel("Cố vấn học tập :");
@@ -186,11 +161,28 @@ public class GPAPanel extends JPanel implements ActionListener, KeyListener, Mou
 		
 		table = new GPATable();
 		//table.setData(cList);
-		table.setBounds(5, 295, 1080, 320);
+		table.setBounds(5, 245, 1066, 370);
 		add(table);
 		//table.loadData();
 
 		if(student != null) {
+			txStudentID.setText(student.getId());
+			txName.setText(student.getName());
+			txClass.setText(student.getUniClass());
+			if(student.getSex().equalsIgnoreCase("Nam")) {
+				rbNam.setSelected(true);
+			} else {
+				rbNu.setSelected(true);
+			}
+			txCourseYear.setText(String.valueOf(student.getCourseYear()));
+			txPOB.setText(student.getPob());
+			txDepartment.setText(student.getDepartment());
+			txFaculty.setText(student.getFaculty());
+			if(student.getMajor() != null) {
+				txMajor.setText(student.getMajor());
+			}
+			txCounselor.setText(student.getCounselor());
+			
 			table.setData(student.getCourses());
 			table.loadData();
 		}

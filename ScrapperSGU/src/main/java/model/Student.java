@@ -1,6 +1,5 @@
 package model;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +8,6 @@ public class Student {
 	private String id;
 	private String name;
 	private String uniClass;
-	private LocalDate dob;
 	private String sex;
 	private int courseYear;
 	private String courseDuration;
@@ -42,30 +40,14 @@ public class Student {
 		this.counselor = counselor;
 	}
 	
-	public Student(String id, String name, String uniClass, LocalDate dob, String sex, int courseYear,
-			String courseDuration, String pob, String department, String faculty, String major, String counselor) {
-		this.id = id;
-		this.name = name;
-		this.uniClass = uniClass;
-		this.dob = dob;
-		this.sex = sex;
-		this.courseYear = courseYear;
-		this.courseDuration = courseDuration;
-		this.pob = pob;
-		this.department = department;
-		this.faculty = faculty;
-		this.major = major;
-		this.counselor = counselor;
-	}
 
-	public Student(String id, String name, String uniClass, LocalDate dob, String sex, int courseYear,
+	public Student(String id, String name, String uniClass, String sex, int courseYear,
 			String courseDuration, String pob, String department, String faculty, String major, String counselor,
 			List<Course> courses, Map<String,List<Float>> markMap) {
 		super();
 		this.id = id;
 		this.name = name;
 		this.uniClass = uniClass;
-		this.dob = dob;
 		this.sex = sex;
 		this.courseYear = courseYear;
 		this.courseDuration = courseDuration;
@@ -101,15 +83,7 @@ public class Student {
 	public void setUniClass(String uniClass) {
 		this.uniClass = uniClass;
 	}
-
-	public LocalDate getDob() {
-		return dob;
-	}
-
-	public void setDob(LocalDate dob) {
-		this.dob = dob;
-	}
-
+	
 	public String getSex() {
 		return sex;
 	}
@@ -216,7 +190,7 @@ public class Student {
 
 	@Override
 	public String toString() {
-		return "Student [id=" + id + ", name=" + name + ", uniClass=" + uniClass + ", dob=" + dob + ", sex=" + sex
+		return "Student [id=" + id + ", name=" + name + ", uniClass=" + uniClass + ", sex=" + sex
 				+ ", courseYear=" + courseYear + ", courseDuration=" + courseDuration + ", pob=" + pob + ", department="
 				+ department + ", faculty=" + faculty + ", major=" + major + ", counselor=" + counselor + "]";
 	}

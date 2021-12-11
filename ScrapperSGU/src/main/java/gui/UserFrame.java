@@ -18,6 +18,7 @@ import java.net.UnknownHostException;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
@@ -25,6 +26,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.internal.build.AllowSysOut;
 
 import gui.panel.GPAPanel;
 import gui.panel.ProgressPanel;
@@ -147,25 +149,38 @@ public class UserFrame extends JFrame implements MouseListener {
 		btnSearch.setBounds(480, 9, 85, 21);
 		btnSearch.addMouseListener(this);
 		btnSearch.addActionListener((e) -> {
+			
+			//Try-with-Resource
 			try (Socket socket = new Socket(ipAddress, port);
 					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
 					ObjectInputStream mapInputStream = new ObjectInputStream(socket.getInputStream());) {
 				System.out.println("Connected");
+				
+				//Nối chuỗi MSSV và các option để lọc ranking
 				StringBuilder sb = new StringBuilder();
 				sb.append(mssvField.getText()).append("|")
 				.append(String.valueOf(department)).append("|")
 				.append(String.valueOf(year)).append("|")
 				.append(String.valueOf(faculty));
+				//Send qua server
 				out.write(sb.toString());
 				out.newLine();
+				//Phải flush thì dữ liệu mới đi
 				out.flush();
+				
+				//Đọc cái Map TTSV,Môn, Điểm
 				Map<String, List<String>>[] map = (LinkedHashMap<String, List<String>>[]) mapInputStream.readObject();
-				rank = (List<Ranking>) mapInputStream.readObject();
+				//Đọc list ranking nếu map khác null
+				if(map != null) {
+					rank = (List<Ranking>) mapInputStream.readObject();
+				}
 				List<Course> courses = new ArrayList<>();
 				Map<String, List<Float>> markMap = new LinkedHashMap<>();
 				String[] array_TheChat = { "BODA", "BOBA", "BOCH", "CALO", "BORO" };
+				String[] monThayThe = {"841308","841072","841073"};
 				List<Course> remain = new ArrayList<>();
 				
+				//Nếu map = null tương đương sinh viên không tồn tại
 				if(map != null) {
 					
 					map[0].values().forEach(x -> {
@@ -176,81 +191,119 @@ public class UserFrame extends JFrame implements MouseListener {
 						student.setPob(x.get(3));
 						student.setUniClass(StringUtils.substringBefore(x.get(4), "("));
 						student.setDepartment(x.get(5));
-						student.setMajor(x.get(6));
-						student.setFaculty(x.get(7));
-						student.setCourseYear(Integer.parseInt(x.get(9).substring(0, 4)));
-						student.setCourseDuration(x.get(9));
-						student.setCounselor(x.get(10));
+						if(map[0].get("Thông tin sinh viên").size() == 12) {
+							student.setMajor(x.get(6));
+							student.setFaculty(x.get(7));
+							student.setCourseYear(Integer.parseInt(x.get(9).substring(0, 4)));
+							student.setCourseDuration(x.get(9));
+							student.setCounselor(x.get(10));
+							if(x.get(11) != null) {
+								student.setCurrentCredit(Integer.parseInt(x.get(11)));
+							} else {
+								student.setCurrentCredit(0);
+							}
+						} else {
+							student.setFaculty(x.get(6));
+							student.setCourseYear(Integer.parseInt(x.get(8).substring(0, 4)));
+							student.setCourseDuration(x.get(8));
+							student.setCounselor(x.get(9));
+							if(x.get(10) != null) {
+								student.setCurrentCredit(Integer.parseInt(x.get(10)));
+							} else {
+								student.setCurrentCredit(0);
+							}
+						}
+						
 					});
 					
 					map[1].values().forEach(x -> {
 						for (var course : x) {
+							//Tách chuỗi
 							String[] splits = course.split("\\|");
 							Course c = new Course();
 							
+							//Là môn đầu vào tiếng anh nên skip
 							if(splits[0].equals("KSTA60")) {
 								continue;
 							}
 							
+							//Phải check vì khác mã môn học so với CTĐT
 							if(splits[0].equals("841324")) {
 								c.setCourseID("868001");
 								c.setCourseName(splits[1]);
 								c.setCourseCredit(Integer.parseInt(splits[2]));
-								c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-								c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
-								c.setPass(splits[5].equals("Đạt") ? true : false);
-								courses.add(c);
-								continue;
-							}
-								
-							if (Arrays.stream(array_TheChat).anyMatch(b -> splits[0].startsWith(b))) {
-								if (!courses.stream().anyMatch(b -> b.getCourseID().equals("862102"))) {
-									c.setCourseID("862102");
-									c.setCourseName("Giáo dục thểchất (II)");
-									c.setCourseCredit(Integer.parseInt(splits[2]));
-									c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-									c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
-									c.setPass(splits[5].equals("Đạt") ? true : false);
-									courses.add(c);
-									continue;
-								}
-								c.setCourseID("862103");
-								c.setCourseName("Giáo dục thểchất (III)");
-								c.setCourseCredit(Integer.parseInt(splits[2]));
-								c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-								c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
+								c.setGradeBase10( splits[3].isEmpty() || splits[3].equalsIgnoreCase("R") ? 0 : Float.parseFloat(splits[3]));
+								c.setGradeBase4(splits[4].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
 								c.setPass(splits[5].equals("Đạt") ? true : false);
 								courses.add(c);
 								continue;
 							}
 							
+							//Kiểm tra môn học có bắt đầu một trong những chuỗi ở mảng array_TheChat
+							if (Arrays.stream(array_TheChat).anyMatch(b -> splits[0].startsWith(b))) {
+								//Kiểm tra trong list môn học hiện tại đã có 862102
+								if (!courses.stream().anyMatch(b -> b.getCourseID().equals("862102"))) {
+									c.setCourseID("862102");
+									c.setCourseName("Giáo dục thểchất (II)");
+									c.setCourseCredit(Integer.parseInt(splits[2]));
+									c.setGradeBase10( splits[3].isEmpty() || splits[3].equalsIgnoreCase("R") ? 0 : Float.parseFloat(splits[3]));
+									c.setGradeBase4(splits[4].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
+									c.setPass(splits[5].equals("Đạt") ? true : false);
+									courses.add(c);
+									continue;
+								}
+								//Nếu list môn học hiện tại đã có 862102 thì
+								c.setCourseID("862103");
+								c.setCourseName("Giáo dục thểchất (III)");
+								c.setCourseCredit(Integer.parseInt(splits[2]));
+								c.setGradeBase10( splits[3].isEmpty() || splits[3].equalsIgnoreCase("R") ? 0 : Float.parseFloat(splits[3]));
+								c.setGradeBase4(splits[4].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
+								c.setPass(splits[5].equals("Đạt") ? true : false);
+								courses.add(c);
+								continue;
+							}
+							//Với các môn bt thì thêm vào
 							c.setCourseID(splits[0]);
 							c.setCourseName(splits[1]);
 							c.setCourseCredit(Integer.parseInt(splits[2]));
-							c.setGradeBase10( splits[3].isEmpty() ? 0 : Float.parseFloat(splits[3]));
-							c.setGradeBase4(splits[3].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
+							c.setGradeBase10( splits[3].isEmpty() || splits[3].equalsIgnoreCase("R") ? 0 : Float.parseFloat(splits[3]));
+							c.setGradeBase4(splits[4].isEmpty() ? 0 : Integer.parseInt(splits[4].substring(0, 1)));
 							c.setPass(splits[5].equals("Đạt") ? true : false);
 							courses.add(c);
 						}
 					});
 					
+					
+					//Lambda Expression forEach(k,v) có nghĩa là nó sẽ lặp theo k=key lấy k=key hiện tại,v = value
 					map[2].forEach((k,v) -> {
 						if(v.isEmpty())
 							return;
 						List<Float> diem = new ArrayList<Float>();
+						//vòng lặp lấy điểm
 						v.forEach(d -> diem.add(Float.parseFloat(d)));
 						markMap.put(k, diem);
 					});
 					
-					ListMonHoc.MonHocs.forEach((k,v) -> {
-						if(!courses.stream().anyMatch(n -> n.getCourseID().equals(String.valueOf(k)))) {
-							remain.add(v);
+					//Kiểm tra nếu môn học không có trong list courses thì add vào danh sách môn còn lại
+					if(student.getFaculty().equals("Công nghệ thông tin")) {
+						ListMonHoc.MonHocs.forEach((k,v) -> {
+							if(!courses.stream().anyMatch(n -> n.getCourseID().equals(String.valueOf(k)))) {
+								remain.add(v);
+							}
+						});
+						//Kiểm tra nếu có đăng ký môn khoá luận thì xoá 3 môn thay thế
+						if(courses.stream().anyMatch(n -> n.getCourseID().equals("841070"))) {
+							courses.removeIf(x -> Arrays.stream(monThayThe).anyMatch(b -> b.equals(x.getCourseID())));
 						}
 						
-					});
-					
+						/*
+						//Kiểm tra nếu trong danh sách môn đang học có 1 trong 3 thay thế, thì sẽ xoá môn khoá luận
+						if(courses.stream().anyMatch(n -> Arrays.stream(monThayThe).anyMatch(b -> b.equals(n.getCourseID())))) {
+							courses.removeIf(x -> x.getCourseID().equals("841070"));
+						}*/
+					}
 				} else {
-					
+					JOptionPane.showMessageDialog(this, "Mã số sinh viên không tồn tại","Thông báo",JOptionPane.ERROR_MESSAGE);
 				}
 				
 				student.setCourses(courses);

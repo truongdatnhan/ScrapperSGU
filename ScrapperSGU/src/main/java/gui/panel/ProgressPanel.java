@@ -8,6 +8,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.text.DecimalFormat;
 
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
@@ -34,15 +35,18 @@ public class ProgressPanel extends JPanel implements ActionListener, KeyListener
 		tabbedPane.addTab("Các môn học còn lại", null, tab2, null);
 		add(tabbedPane,BorderLayout.CENTER);
 		
-		
-		//lbProgerss = new JLabel("Bạn đã hoàn thành 75% học phần");
+		lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Hãy tìm mã số sinh viên để biết kết quả"+"</span></html>");
 		if(student != null) {
-			lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Bạn đã hoàn thành "+ student.getMarkMap().values() +"% học phần"+"</span></html>");
-			add(lbProgerss,BorderLayout.PAGE_END);
-		} else {
-			lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Hãy tìm mã số sinh viên để biết kết quả"+"</span></html>");
-			add(lbProgerss,BorderLayout.PAGE_END);
+			//Làm tròn số sau dấu phẩy
+			DecimalFormat df = new DecimalFormat("#.##");
+			float percent = ((float) student.getCurrentCredit() /150)*100;
+			lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Bạn đã hoàn thành "+ df.format(percent) +"% học phần"+"</span></html>");
+			if(!student.getFaculty().equals("Công nghệ thông tin")) {
+				lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Tính năng này chỉ hoạt động đúng với sinh viên khoa CNTT"+"</span></html>");
+				
+			}
 		}
+		add(lbProgerss,BorderLayout.PAGE_END);
 		
 	}
 
