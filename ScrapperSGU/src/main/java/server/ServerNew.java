@@ -71,14 +71,29 @@ public class ServerNew {
 						//khoa
 						//Nếu không chọn => giá trị = false, sẽ = null 
 						//còn nếu chọn => giá trị = true, sẽ lấy trong map thông tin sinh viên và vị trí số 5
-						String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(5) : null;
-						//khoá
-						String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
+						
 						//ngành
-						String faculty = Boolean.valueOf(receive[3]) ? map[0].get("Thông tin sinh viên").get(7) : null;
-						List<Ranking> studs = ranking(id,department,year,faculty);
-						objectOutputStream.writeObject(studs);
-						objectOutputStream.flush();
+						String faculty = Boolean.valueOf(receive[3]) ? map[0].get("Thông tin sinh viên").get(5) : null;
+						
+						if(map[0].get("Thông tin sinh viên").size() == 12) {
+							//khoá
+							String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(9).substring(0, 4) : null;
+							//khoa
+							String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(7) : null;
+							List<Ranking> studs = ranking(id,department,year,faculty);
+							objectOutputStream.writeObject(studs);
+							objectOutputStream.flush();
+						}else {
+							//khoá
+							String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(8).substring(0, 4) : null;
+							//khoa
+							String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(6) : null;
+							List<Ranking> studs = ranking(id,department,year,faculty);
+							objectOutputStream.writeObject(studs);
+							objectOutputStream.flush();
+						}
+						
+						
 					}
 				}
 			} catch (Exception e) {

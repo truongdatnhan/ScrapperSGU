@@ -302,19 +302,18 @@ public class UserFrame extends JFrame implements MouseListener {
 							courses.removeIf(x -> x.getCourseID().equals("841070"));
 						}*/
 					}
+					student.setCourses(courses);
+					student.setMarkMap(markMap);
+					student.setRemainCourses(remain);
+					
+					centerPanel.removeAll();
+					insideCenter = new GPAPanel(student);
+					centerPanel.add(insideCenter, BorderLayout.CENTER);
+					centerPanel.repaint();
+					centerPanel.revalidate();
 				} else {
 					JOptionPane.showMessageDialog(this, "Mã số sinh viên không tồn tại","Thông báo",JOptionPane.ERROR_MESSAGE);
 				}
-				
-				student.setCourses(courses);
-				student.setMarkMap(markMap);
-				student.setRemainCourses(remain);
-				
-				centerPanel.removeAll();
-				insideCenter = new GPAPanel(student);
-				centerPanel.add(insideCenter, BorderLayout.CENTER);
-				centerPanel.repaint();
-				centerPanel.revalidate();
 			} catch (UnknownHostException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
