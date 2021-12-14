@@ -42,7 +42,7 @@ public class ProgressPanel extends JPanel implements ActionListener, KeyListener
 			float percent = ((float) student.getCurrentCredit() /150)*100;
 			lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Bạn đã hoàn thành "+ df.format(percent) +"% học phần"+"</span></html>");
 			if(!student.getFaculty().equals("Công nghệ thông tin")) {
-				lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Tính năng này chỉ hoạt động đúng với sinh viên khoa CNTT"+"</span></html>");
+				lbProgerss = new JLabel("<html><span style='font-size:20px'>"+"Tính năng này chỉ hoạt động đúng với sinh viên ngành CNTT"+"</span></html>");
 				
 			}
 		}

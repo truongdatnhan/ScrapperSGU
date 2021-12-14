@@ -3,10 +3,24 @@ package server;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SealedObject;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -19,7 +33,9 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+
 import model.Ranking;
+import tool.NotClosingOutputStream;
 
 public class ServerNew {
 	public ServerNew(int port) {
@@ -46,23 +62,52 @@ public class ServerNew {
 
 		@Override
 		public void run() {
-			try {
+				
 				try (
-						
 						clientSocket;
 						//Phải dùng ObjectOutputStream mới gửi được map, object
 						//Cái kia chỉ gửi được String
-						ObjectOutputStream objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
-						BufferedReader input = new BufferedReader(
-								new InputStreamReader(clientSocket.getInputStream()));) {
-					//Split cái chuỗi nhận vào theo ký tự |
-					String[] receive = input.readLine().split("\\|");
-					//Lấy thông tin sinh viên và điểm, nếu sinh viên không tồn tại = null
-					Map<String, List<String>>[] map = mapTTSV(receive[0]);
+						ObjectInputStream input = new ObjectInputStream(clientSocket.getInputStream());
+						ObjectOutputStream output = new ObjectOutputStream(clientSocket.getOutputStream());
+					) {
+						
+					//Nhận public key RSA từ client
+					PublicKey publicKey = (PublicKey) input.readObject();
+					//Khai báo kiểu mã hoá là RSA và sử dụng public key để mã hoá
+					Cipher encryptRSA = Cipher.getInstance("RSA");
+					encryptRSA.init(Cipher.ENCRYPT_MODE, publicKey);
 					
+					//System.out.println(Base64.getEncoder().encodeToString(publicKey.getEncoded()));
+					
+					//Khởi tạo độ dài SecretKey
+					SecureRandom rnd = new SecureRandom();
+				    byte[] iv = new byte[16];
+				    rnd.nextBytes(iv);
+	
+				    //Khởi tạo khoá bí mật kiểu AES
+				    SecretKeySpec spec = new SecretKeySpec(iv, "AES");
+				    Cipher encryptAES = Cipher.getInstance("AES");
+				    encryptAES.init(Cipher.ENCRYPT_MODE, spec);
+				    //System.out.println(Base64.getEncoder().encodeToString(spec.getEncoded()));
+					
+					//Split cái chuỗi nhận vào theo ký tự |
+					String[] receive = input.readUTF().split("\\|");
+					
+					String secretKeyEncrypted = Base64.getEncoder().encodeToString(encryptRSA.doFinal(spec.getEncoded()));
+					//String secretKeyEncrypted = new String(encryptRSA.doFinal(spec.getEncoded()));
+					System.out.println(Base64.getEncoder().encodeToString(spec.getEncoded()));
+					System.out.println(secretKeyEncrypted);
+					//Gửi secretKey dạng base64 về client
+					output.writeUTF(secretKeyEncrypted);
+					output.flush();
+				    
+				    //Lấy thông tin sinh viên và điểm, nếu sinh viên không tồn tại = null
+					Map<String, List<String>>[] map = mapTTSV(receive[0]);
 					//Trả về lần 1 là TTSV, Môn, Điểm
-					objectOutputStream.writeObject(map);
-					objectOutputStream.flush();
+					CipherOutputStream cos = new CipherOutputStream(clientSocket.getOutputStream(), encryptAES);
+					ObjectOutputStream oos = new ObjectOutputStream(cos);
+					oos.writeObject(map);
+					oos.flush();
 					//Phải có flush mới gửi tiếp dc
 					//Trả về lần 2
 					if(map != null) {
@@ -71,7 +116,6 @@ public class ServerNew {
 						//khoa
 						//Nếu không chọn => giá trị = false, sẽ = null 
 						//còn nếu chọn => giá trị = true, sẽ lấy trong map thông tin sinh viên và vị trí số 5
-						
 						//ngành
 						String faculty = Boolean.valueOf(receive[3]) ? map[0].get("Thông tin sinh viên").get(5) : null;
 						
@@ -81,22 +125,21 @@ public class ServerNew {
 							//khoa
 							String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(7) : null;
 							List<Ranking> studs = ranking(id,department,year,faculty);
-							objectOutputStream.writeObject(studs);
-							objectOutputStream.flush();
+							oos.writeObject(studs);
+							oos.flush();
 						}else {
 							//khoá
 							String year = Boolean.valueOf(receive[2]) ? map[0].get("Thông tin sinh viên").get(8).substring(0, 4) : null;
 							//khoa
 							String department = Boolean.valueOf(receive[1]) ? map[0].get("Thông tin sinh viên").get(6) : null;
 							List<Ranking> studs = ranking(id,department,year,faculty);
-							objectOutputStream.writeObject(studs);
-							objectOutputStream.flush();
+							oos.writeObject(studs);
+							oos.flush();
 						}
-						
-						
 					}
+					oos.close();
 				}
-			} catch (Exception e) {
+			 catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
@@ -157,8 +200,7 @@ public class ServerNew {
 					+ ") order by ranking asc");
 			p.setParameter("id", id);
 			
-			
-			
+			//Lấy danh sách trả về mà ép thành Ranking List<Ranking>
 			rank = p.addEntity(Ranking.class).getResultList();
 			session.getTransaction().commit();
 		}
@@ -212,7 +254,6 @@ public class ServerNew {
 					case "title-hk-diem":
 						if(diem != null && !diem.isEmpty()) {
 							tongTinChi = diem.get(diem.size() -1);
-							System.out.println(tongTinChi);
 						}
 						hk = new ArrayList<>();
 						diem = new ArrayList<>();

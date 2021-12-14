@@ -3,30 +3,36 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
-import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
-import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.LineBorder;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.internal.build.AllowSysOut;
 
 import gui.panel.GPAPanel;
 import gui.panel.ProgressPanel;
@@ -35,18 +41,22 @@ import model.Course;
 import model.ListMonHoc;
 import model.Ranking;
 import model.Student;
-import tool.Design;
 import tool.TraCuuListener;
 
-import java.awt.event.MouseAdapter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JTextField;
+import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SealedObject;
+import javax.crypto.spec.SecretKeySpec;
 import javax.swing.JButton;
 
 public class UserFrame extends JFrame implements MouseListener {
@@ -104,10 +114,7 @@ public class UserFrame extends JFrame implements MouseListener {
 		lbGPA.setHorizontalAlignment(SwingConstants.CENTER);
 		lbGPA.setForeground(Color.WHITE);
 		lbGPA.setBounds(0, 0, 180, 40);
-		ImageIcon iconS = Design.resizeIcon("./icon/icons8_book_64.png", gpaPanel.getWidth() / 3,
-				(int) (gpaPanel.getHeight() * 1.4));
 		gpaPanel.setLayout(null);
-		lbGPA.setIcon(iconS);
 		gpaPanel.add(lbGPA);
 		// 0,y+45,200,40
 		progressPanel = new JPanel();
@@ -121,18 +128,12 @@ public class UserFrame extends JFrame implements MouseListener {
 		lbProgress.setForeground(Color.WHITE);
 		lbProgress.setBounds(0, 0, 180, 40);
 		lbProgress.addMouseListener(this);
-		ImageIcon iconP = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
 		progressPanel.setLayout(null);
-		lbProgress.setIcon(iconP);
 		progressPanel.add(lbProgress);
 
 		lbLogo = new JLabel("");
 		lbLogo.setBounds(54, 14, 70, 70);
 		leftPanel.add(lbLogo);
-
-		ImageIcon logo = Design.resizeIcon("./icon/book1.png", lbLogo.getWidth(), lbLogo.getHeight());
-		lbLogo.setIcon(logo);
 
 		header = new JPanel();
 		header.setPreferredSize(new Dimension(1200, 40));
@@ -152,9 +153,23 @@ public class UserFrame extends JFrame implements MouseListener {
 			
 			//Try-with-Resource
 			try (Socket socket = new Socket(ipAddress, port);
-					BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-					ObjectInputStream mapInputStream = new ObjectInputStream(socket.getInputStream());) {
+					ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+					ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
+					) {
 				System.out.println("Connected");
+
+				//Tạo cặp khoá RSA
+				KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA");
+				generator.initialize(1024);
+				KeyPair pair = generator.generateKeyPair();
+
+				PrivateKey privateKey = pair.getPrivate();
+				PublicKey publicKey = pair.getPublic();
+			    
+				//Gửi publicKey lên serevr
+				out.writeObject(publicKey);
+				out.flush();
+
 				
 				//Nối chuỗi MSSV và các option để lọc ranking
 				StringBuilder sb = new StringBuilder();
@@ -163,16 +178,34 @@ public class UserFrame extends JFrame implements MouseListener {
 				.append(String.valueOf(year)).append("|")
 				.append(String.valueOf(faculty));
 				//Send qua server
-				out.write(sb.toString());
-				out.newLine();
+				out.writeUTF(sb.toString());
 				//Phải flush thì dữ liệu mới đi
 				out.flush();
 				
-				//Đọc cái Map TTSV,Môn, Điểm
-				Map<String, List<String>>[] map = (LinkedHashMap<String, List<String>>[]) mapInputStream.readObject();
+				//Tạo kiểu giãi mã RSA bằng privateKey
+				Cipher decryptRSA = Cipher.getInstance("RSA");
+				decryptRSA.init(Cipher.DECRYPT_MODE, privateKey);
+
+				//Nhận secretKey đã mã hoá
+				String secretKeyEncrypted = in.readUTF();
+				//Giải mã secretKey
+				byte[] aesKey = decryptRSA.doFinal(Base64.getDecoder().decode(secretKeyEncrypted));
+				System.out.println(aesKey);
+				
+				//Tạo secretKey chuẩn
+			    SecretKeySpec spec = new SecretKeySpec(aesKey, "AES");
+				System.out.println(Base64.getEncoder().encodeToString(spec.getEncoded()));
+
+				//Tạo kiểu giãi mã AES bằng secretKey
+				Cipher decryptAES = Cipher.getInstance("AES");
+			    decryptAES.init(Cipher.DECRYPT_MODE, spec);
+			    ObjectInputStream ois = new ObjectInputStream(new CipherInputStream(socket.getInputStream(), decryptAES));
+			    
+			    //Đọc cái Map TTSV,Môn, Điểm
+			    Map<String, List<String>>[] map = (Map<String, List<String>>[]) ois.readObject();
 				//Đọc list ranking nếu map khác null
 				if(map != null) {
-					rank = (List<Ranking>) mapInputStream.readObject();
+					rank = (List<Ranking>) ois.readObject();
 				}
 				List<Course> courses = new ArrayList<>();
 				Map<String, List<Float>> markMap = new LinkedHashMap<>();
@@ -191,9 +224,10 @@ public class UserFrame extends JFrame implements MouseListener {
 						student.setPob(x.get(3));
 						student.setUniClass(StringUtils.substringBefore(x.get(4), "("));
 						student.setDepartment(x.get(5));
+						student.setFaculty(x.get(5));
 						if(map[0].get("Thông tin sinh viên").size() == 12) {
 							student.setMajor(x.get(6));
-							student.setFaculty(x.get(7));
+							student.setDepartment(x.get(7));
 							student.setCourseYear(Integer.parseInt(x.get(9).substring(0, 4)));
 							student.setCourseDuration(x.get(9));
 							student.setCounselor(x.get(10));
@@ -203,7 +237,7 @@ public class UserFrame extends JFrame implements MouseListener {
 								student.setCurrentCredit(0);
 							}
 						} else {
-							student.setFaculty(x.get(6));
+							student.setDepartment(x.get(6));
 							student.setCourseYear(Integer.parseInt(x.get(8).substring(0, 4)));
 							student.setCourseDuration(x.get(8));
 							student.setCounselor(x.get(9));
@@ -311,6 +345,8 @@ public class UserFrame extends JFrame implements MouseListener {
 					centerPanel.add(insideCenter, BorderLayout.CENTER);
 					centerPanel.repaint();
 					centerPanel.revalidate();
+					//cis.close();
+					ois.close();
 				} else {
 					JOptionPane.showMessageDialog(this, "Mã số sinh viên không tồn tại","Thông báo",JOptionPane.ERROR_MESSAGE);
 				}
@@ -323,6 +359,21 @@ public class UserFrame extends JFrame implements MouseListener {
 			} catch (ClassNotFoundException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
+			} catch (NoSuchAlgorithmException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InvalidKeyException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (NoSuchPaddingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalBlockSizeException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (BadPaddingException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
 		});
 		header.add(btnSearch);
@@ -330,12 +381,6 @@ public class UserFrame extends JFrame implements MouseListener {
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BorderLayout());
 		mainPanel.add(centerPanel, BorderLayout.CENTER);
-		ImageIcon iconPN = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
-		ImageIcon iconPM = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
-		ImageIcon iconPP = Design.resizeIcon("./icon/icons8_Bill_64.png", progressPanel.getWidth() / 3,
-				(int) (progressPanel.getHeight() * 1.5));
 
 		rankingPanel = new JPanel();
 		rankingPanel.setLayout(null);
