@@ -169,7 +169,6 @@ public class UserFrame extends JFrame implements MouseListener {
 				//Gửi publicKey lên serevr
 				out.writeObject(publicKey);
 				out.flush();
-
 				
 				//Nối chuỗi MSSV và các option để lọc ranking
 				StringBuilder sb = new StringBuilder();

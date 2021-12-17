@@ -163,7 +163,7 @@ public class ServerNew {
 			
 			//Khoa
 			if(department != null) {
-				sb.append(" AND khoa = ")
+				sb.append(" WHERE khoa = ")
 				.append("'")
 				.append(department)
 				.append("'");
@@ -171,31 +171,38 @@ public class ServerNew {
 			
 			//Khoá
 			if(year != null) {
-				sb.append(" AND namhoc= ")
-				.append("'")
+				if(sb.toString().contains("WHERE")) {
+					sb.append(" AND namhoc= ");
+				} else {
+					sb.append(" WHERE namhoc= ");
+				}
+				
+				sb.append("'")
 				.append(year)
 				.append("'");
 			}
 			
 			//Ngành
 			if(faculty != null) {
-				sb.append(" AND nganh = ")
-				.append("'")
+				if(sb.toString().contains("WHERE")) {
+					sb.append(" AND nganh = ");
+				} else {
+					sb.append(" WHERE nganh = ");
+				}
+				sb.append("'")
 				.append(faculty)
 				.append("'");
 			}
-			NativeQuery p = session.createNativeQuery("SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien ) AS svMark\r\n"
+			NativeQuery p = session.createNativeQuery("SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien "+ sb.toString() +") AS svMark\r\n"
 					+ "WHERE id = :id\r\n"
 					+ "union all (\r\n"
-					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark\r\n"
-					+ "  where ranking <  (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id) \r\n"
-					+ sb.toString()
+					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien "+ sb.toString() +") AS svMark\r\n"
+					+ "  where ranking <  (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien " + sb.toString() +") AS svMark WHERE id = :id) \r\n"
 					+ "  order by ranking desc limit 10\r\n"
 					+ ") \r\n"
 					+ "union all (\r\n"
-					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien ) AS svMark\r\n"
-					+ "  where ranking > (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien) AS svMark WHERE id = :id) \r\n"
-					+ sb.toString()
+					+ "  SELECT * FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien "+ sb.toString() +") AS svMark\r\n"
+					+ "  where ranking > (SELECT ranking FROM( SELECT *, RANK() OVER (ORDER BY diemhebon DESC,id) ranking FROM sinhvien "+sb.toString()+") AS svMark WHERE id = :id) \r\n"
 					+ "  order by ranking asc limit 10\r\n"
 					+ ") order by ranking asc");
 			p.setParameter("id", id);
