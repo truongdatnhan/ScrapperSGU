@@ -47,8 +47,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
 import javax.swing.JTextField;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -334,6 +337,24 @@ public class UserFrame extends JFrame implements MouseListener {
 							remain.removeIf(x -> x.getCourseID().equals("841099"));
 						}
 					}
+					
+					//Kiểm tra có môn cải thiện
+					Map<String, Course> caiThien = new LinkedHashMap<String,  Course>();
+					for (Course c : courses) {
+					     if(caiThien.containsKey(c.getCourseID()) ) {
+						    	System.out.println(c.getCourseName());
+						        if( caiThien.get(c.getCourseID()).getGradeBase4() < c.getGradeBase4()  ) {
+						            System.out.println("Môn cải thiện điểm cao hơn");
+						            caiThien.put(c.getCourseID(), c);
+						        }
+						    } else {
+						    	caiThien.put(c.getCourseID(), c);
+						    }
+					}
+					
+					courses.clear();
+					courses.addAll(caiThien.values());
+					
 					student.setCourses(courses);
 					student.setMarkMap(markMap);
 					student.setRemainCourses(remain);
