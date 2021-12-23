@@ -30,7 +30,7 @@ public class ProgressGraphTab extends JPanel {
         			dtb10.add(v.get(3));
         		}
         	});
-        	ChartPanel chartPanel = new ChartPanel(new DualAxis(hk,dtb4,dtb10).getChart());
+        	ChartPanel chartPanel = new ChartPanel(new DualAxis(hk,dtb10,dtb4).getChart());
         	//Tạo graph xong chỉ cần thay null add vào
     		add(chartPanel,BorderLayout.CENTER);
         }	

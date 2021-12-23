@@ -325,15 +325,14 @@ public class UserFrame extends JFrame implements MouseListener {
 							}
 						});
 						//Kiểm tra nếu có đăng ký môn khoá luận thì xoá 3 môn thay thế
-						if(courses.stream().anyMatch(n -> n.getCourseID().equals("841070"))) {
-							courses.removeIf(x -> Arrays.stream(monThayThe).anyMatch(b -> b.equals(x.getCourseID())));
+						if(courses.stream().anyMatch(n -> n.getCourseID().equals("841099"))) {
+							remain.removeIf(x -> Arrays.stream(monThayThe).anyMatch(b -> b.equals(x.getCourseID())));
 						}
 						
-						/*
 						//Kiểm tra nếu trong danh sách môn đang học có 1 trong 3 thay thế, thì sẽ xoá môn khoá luận
 						if(courses.stream().anyMatch(n -> Arrays.stream(monThayThe).anyMatch(b -> b.equals(n.getCourseID())))) {
-							courses.removeIf(x -> x.getCourseID().equals("841070"));
-						}*/
+							remain.removeIf(x -> x.getCourseID().equals("841099"));
+						}
 					}
 					student.setCourses(courses);
 					student.setMarkMap(markMap);
